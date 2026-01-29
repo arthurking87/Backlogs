@@ -18,3 +18,7 @@ zsh-install:
 
 prometheus-install:
 	helm -n test1 install prometheus oci://ghcr.io/prometheus-community/charts/kube-prometheus-stack
+
+golang-install:
+	sudo apt-get update
+	sudo apt-get install golang-go

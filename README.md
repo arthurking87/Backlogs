@@ -12,3 +12,7 @@ plugins=(git zsh-autosuggestions zsh-syntax-highlighting zsh-z)
 
 # kind 
 https://kind.sigs.k8s.io/
+
+# Build
+docker build -t t-operator:0.24.0 .
+kind load docker-image t-operator:0.24.0

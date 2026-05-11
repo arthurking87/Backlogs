@@ -1,0 +1,525 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  annotations:
+    k8s.mariadb.com/ca: 66ca8c6ae2f6f08bd8df0900e02903149f7f68a5bee3a44b562710301a852a4a
+    k8s.mariadb.com/client-cert: 5777005a43e2f528085827dca0af2e0a6153e561cd51e7178418761b224a556e
+    k8s.mariadb.com/config-tls: 169a08c8cb9d9b89643267e720eb6e3c3c7894d6c18d429404a88d762c7388cd
+    k8s.mariadb.com/mariadb: mariadb-repl
+    k8s.mariadb.com/replication: ""
+    k8s.mariadb.com/server-cert: c42001e2c97fcd66ae6b4e4e85d2e52512007350511c0b4040cdbcf35ce69a32
+  creationTimestamp: "2026-05-11T05:49:40Z"
+  generateName: mariadb-repl-
+  generation: 1
+  labels:
+    app.kubernetes.io/instance: mariadb-repl
+    app.kubernetes.io/name: mariadb
+    apps.kubernetes.io/pod-index: "1"
+    controller-revision-hash: mariadb-repl-6d97db4488
+    k8s.mariadb.com/role: replica
+    statefulset.kubernetes.io/pod-name: mariadb-repl-1
+  name: mariadb-repl-1
+  namespace: test2
+  ownerReferences:
+  - apiVersion: apps/v1
+    blockOwnerDeletion: true
+    controller: true
+    kind: StatefulSet
+    name: mariadb-repl
+    uid: 1d62f00d-1701-4217-8af6-d5e8aabcee7e
+  resourceVersion: "26453"
+  uid: 626324ba-8b82-44e8-908b-17498d361604
+spec:
+  automountServiceAccountToken: false
+  containers:
+  - env:
+    - name: MYSQL_TCP_PORT
+      value: "3306"
+    - name: MARIADB_ROOT_HOST
+      value: '%'
+    - name: CLUSTER_NAME
+      value: cluster.local
+    - name: POD_NAME
+      valueFrom:
+        fieldRef:
+          apiVersion: v1
+          fieldPath: metadata.name
+    - name: POD_NAMESPACE
+      valueFrom:
+        fieldRef:
+          apiVersion: v1
+          fieldPath: metadata.namespace
+    - name: POD_IP
+      valueFrom:
+        fieldRef:
+          apiVersion: v1
+          fieldPath: status.podIP
+    - name: MARIADB_NAME
+      value: mariadb-repl
+    - name: TLS_ENABLED
+      value: "true"
+    - name: TLS_CA_CERT_PATH
+      value: /etc/pki/ca.crt
+    - name: TLS_SERVER_CERT_PATH
+      value: /etc/pki/server.crt
+    - name: TLS_SERVER_KEY_PATH
+      value: /etc/pki/server.key
+    - name: TLS_CLIENT_CERT_PATH
+      value: /etc/pki/client.crt
+    - name: TLS_CLIENT_KEY_PATH
+      value: /etc/pki/client.key
+    - name: MARIADB_REPL_ENABLED
+      value: "true"
+    - name: MARIADB_REPL_GTID_STRICT_MODE
+      value: "true"
+    - name: MARIADB_REPL_SEMI_SYNC_ENABLED
+      value: "true"
+    - name: MARIADB_ROOT_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          key: root-password
+          name: mariadb
+    - name: MYSQL_INITDB_SKIP_TZINFO
+      value: "1"
+    image: docker-registry1.mariadb.com/library/mariadb:11.8.5
+    imagePullPolicy: IfNotPresent
+    livenessProbe:
+      failureThreshold: 3
+      httpGet:
+        path: /liveness
+        port: 5566
+        scheme: HTTP
+      initialDelaySeconds: 20
+      periodSeconds: 10
+      successThreshold: 1
+      timeoutSeconds: 5
+    name: mariadb
+    ports:
+    - containerPort: 3306
+      name: mariadb
+      protocol: TCP
+    readinessProbe:
+      failureThreshold: 3
+      httpGet:
+        path: /readiness
+        port: 5566
+        scheme: HTTP
+      initialDelaySeconds: 20
+      periodSeconds: 10
+      successThreshold: 1
+      timeoutSeconds: 5
+    resources: {}
+    startupProbe:
+      failureThreshold: 3
+      httpGet:
+        path: /liveness
+        port: 5566
+        scheme: HTTP
+      initialDelaySeconds: 20
+      periodSeconds: 10
+      successThreshold: 1
+      timeoutSeconds: 5
+    terminationMessagePath: /dev/termination-log
+    terminationMessagePolicy: File
+    volumeMounts:
+    - mountPath: /etc/mysql/conf.d
+      name: config
+    - mountPath: /etc/pki
+      name: pki
+    - mountPath: /var/lib/mysql
+      name: storage
+    - mountPath: /etc/mysql/mariadb.conf.d
+      name: mariadb-config
+    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      name: serviceaccount
+  - args:
+    - agent
+    - replication
+    - --addr=:5555
+    - --probe-addr=:5566
+    - --config-dir=/etc/mysql/mariadb.conf.d
+    - --state-dir=/var/lib/mysql
+    - --graceful-shutdown-timeout=1s
+    - --kubernetes-auth
+    - --kubernetes-trusted-name=t-operator-mariadb-operator
+    - --kubernetes-trusted-namespace=test1
+    env:
+    - name: MYSQL_TCP_PORT
+      value: "3306"
+    - name: MARIADB_ROOT_HOST
+      value: '%'
+    - name: CLUSTER_NAME
+      value: cluster.local
+    - name: POD_NAME
+      valueFrom:
+        fieldRef:
+          apiVersion: v1
+          fieldPath: metadata.name
+    - name: POD_NAMESPACE
+      valueFrom:
+        fieldRef:
+          apiVersion: v1
+          fieldPath: metadata.namespace
+    - name: POD_IP
+      valueFrom:
+        fieldRef:
+          apiVersion: v1
+          fieldPath: status.podIP
+    - name: MARIADB_NAME
+      value: mariadb-repl
+    - name: TLS_ENABLED
+      value: "true"
+    - name: TLS_CA_CERT_PATH
+      value: /etc/pki/ca.crt
+    - name: TLS_SERVER_CERT_PATH
+      value: /etc/pki/server.crt
+    - name: TLS_SERVER_KEY_PATH
+      value: /etc/pki/server.key
+    - name: TLS_CLIENT_CERT_PATH
+      value: /etc/pki/client.crt
+    - name: TLS_CLIENT_KEY_PATH
+      value: /etc/pki/client.key
+    - name: MARIADB_REPL_ENABLED
+      value: "true"
+    - name: MARIADB_REPL_GTID_STRICT_MODE
+      value: "true"
+    - name: MARIADB_REPL_SEMI_SYNC_ENABLED
+      value: "true"
+    - name: MARIADB_ROOT_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          key: root-password
+          name: mariadb
+    - name: MYSQL_INITDB_SKIP_TZINFO
+      value: "1"
+    image: docker-registry3.mariadb.com/mariadb-operator/mariadb-operator:26.3.0
+    imagePullPolicy: IfNotPresent
+    livenessProbe:
+      failureThreshold: 3
+      httpGet:
+        path: /health
+        port: 5566
+        scheme: HTTP
+      periodSeconds: 10
+      successThreshold: 1
+      timeoutSeconds: 1
+    name: agent
+    ports:
+    - containerPort: 5555
+      name: agent
+      protocol: TCP
+    - containerPort: 5566
+      name: agent-probe
+      protocol: TCP
+    readinessProbe:
+      failureThreshold: 3
+      httpGet:
+        path: /health
+        port: 5566
+        scheme: HTTP
+      periodSeconds: 10
+      successThreshold: 1
+      timeoutSeconds: 1
+    resources: {}
+    terminationMessagePath: /dev/termination-log
+    terminationMessagePolicy: File
+    volumeMounts:
+    - mountPath: /etc/mysql/conf.d
+      name: config
+    - mountPath: /etc/pki
+      name: pki
+    - mountPath: /var/lib/mysql
+      name: storage
+    - mountPath: /etc/mysql/mariadb.conf.d
+      name: mariadb-config
+    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      name: serviceaccount
+  dnsPolicy: ClusterFirst
+  enableServiceLinks: true
+  hostname: mariadb-repl-1
+  initContainers:
+  - args:
+    - init
+    - replication
+    - --config-dir=/etc/mysql/mariadb.conf.d
+    - --state-dir=/var/lib/mysql
+    env:
+    - name: MYSQL_TCP_PORT
+      value: "3306"
+    - name: MARIADB_ROOT_HOST
+      value: '%'
+    - name: CLUSTER_NAME
+      value: cluster.local
+    - name: POD_NAME
+      valueFrom:
+        fieldRef:
+          apiVersion: v1
+          fieldPath: metadata.name
+    - name: POD_NAMESPACE
+      valueFrom:
+        fieldRef:
+          apiVersion: v1
+          fieldPath: metadata.namespace
+    - name: POD_IP
+      valueFrom:
+        fieldRef:
+          apiVersion: v1
+          fieldPath: status.podIP
+    - name: MARIADB_NAME
+      value: mariadb-repl
+    - name: TLS_ENABLED
+      value: "true"
+    - name: TLS_CA_CERT_PATH
+      value: /etc/pki/ca.crt
+    - name: TLS_SERVER_CERT_PATH
+      value: /etc/pki/server.crt
+    - name: TLS_SERVER_KEY_PATH
+      value: /etc/pki/server.key
+    - name: TLS_CLIENT_CERT_PATH
+      value: /etc/pki/client.crt
+    - name: TLS_CLIENT_KEY_PATH
+      value: /etc/pki/client.key
+    - name: MARIADB_REPL_ENABLED
+      value: "true"
+    - name: MARIADB_REPL_GTID_STRICT_MODE
+      value: "true"
+    - name: MARIADB_REPL_SEMI_SYNC_ENABLED
+      value: "true"
+    - name: MARIADB_ROOT_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          key: root-password
+          name: mariadb
+    - name: MYSQL_INITDB_SKIP_TZINFO
+      value: "1"
+    image: docker-registry3.mariadb.com/mariadb-operator/mariadb-operator:26.3.0
+    imagePullPolicy: IfNotPresent
+    name: init
+    resources: {}
+    terminationMessagePath: /dev/termination-log
+    terminationMessagePolicy: File
+    volumeMounts:
+    - mountPath: /etc/mysql/conf.d
+      name: config
+    - mountPath: /etc/pki
+      name: pki
+    - mountPath: /var/lib/mysql
+      name: storage
+    - mountPath: /etc/mysql/mariadb.conf.d
+      name: mariadb-config
+    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      name: serviceaccount
+  nodeName: kind-control-plane
+  preemptionPolicy: PreemptLowerPriority
+  priority: 0
+  restartPolicy: Always
+  schedulerName: default-scheduler
+  securityContext:
+    fsGroup: 999
+    runAsGroup: 999
+    runAsNonRoot: true
+    runAsUser: 999
+  serviceAccount: mariadb-repl
+  serviceAccountName: mariadb-repl
+  subdomain: mariadb-repl-internal
+  terminationGracePeriodSeconds: 30
+  tolerations:
+  - effect: NoExecute
+    key: node.kubernetes.io/not-ready
+    operator: Exists
+    tolerationSeconds: 300
+  - effect: NoExecute
+    key: node.kubernetes.io/unreachable
+    operator: Exists
+    tolerationSeconds: 300
+  volumes:
+  - name: storage
+    persistentVolumeClaim:
+      claimName: storage-mariadb-repl-1
+  - name: config
+    projected:
+      defaultMode: 420
+      sources:
+      - configMap:
+          items:
+          - key: 0-default.cnf
+            path: 0-default.cnf
+          name: mariadb-repl-config-default
+      - configMap:
+          items:
+          - key: 1-tls.cnf
+            path: 1-tls.cnf
+          name: mariadb-repl-config-tls
+  - name: pki
+    projected:
+      defaultMode: 420
+      sources:
+      - secret:
+          items:
+          - key: ca.crt
+            path: ca.crt
+          name: mariadb-repl-ca-bundle
+      - secret:
+          items:
+          - key: tls.crt
+            path: client.crt
+          - key: tls.key
+            path: client.key
+          name: mariadb-repl-client-cert
+      - secret:
+          items:
+          - key: tls.crt
+            path: server.crt
+          - key: tls.key
+            path: server.key
+          name: mariadb-repl-server-cert
+  - emptyDir: {}
+    name: mariadb-config
+  - name: serviceaccount
+    projected:
+      defaultMode: 420
+      sources:
+      - serviceAccountToken:
+          expirationSeconds: 3600
+          path: token
+      - configMap:
+          items:
+          - key: ca.crt
+            path: ca.crt
+          name: kube-root-ca.crt
+      - downwardAPI:
+          items:
+          - fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.namespace
+            path: namespace
+status:
+  conditions:
+  - lastProbeTime: null
+    lastTransitionTime: "2026-05-11T05:49:46Z"
+    observedGeneration: 1
+    status: "True"
+    type: PodReadyToStartContainers
+  - lastProbeTime: null
+    lastTransitionTime: "2026-05-11T05:49:46Z"
+    observedGeneration: 1
+    status: "True"
+    type: Initialized
+  - lastProbeTime: null
+    lastTransitionTime: "2026-05-11T05:50:14Z"
+    observedGeneration: 1
+    status: "True"
+    type: Ready
+  - lastProbeTime: null
+    lastTransitionTime: "2026-05-11T05:50:14Z"
+    observedGeneration: 1
+    status: "True"
+    type: ContainersReady
+  - lastProbeTime: null
+    lastTransitionTime: "2026-05-11T05:49:44Z"
+    observedGeneration: 1
+    status: "True"
+    type: PodScheduled
+  containerStatuses:
+  - containerID: containerd://8ef690a3054eaf21afedaa7e1b788ff72f67b358c969595c8100c5fc7398b869
+    image: docker-registry3.mariadb.com/mariadb-operator/mariadb-operator:26.3.0
+    imageID: docker-registry3.mariadb.com/mariadb-operator/mariadb-operator@sha256:5ef5a5d35173b9be603970e7a1625100a0538004ddca984508df2c08c4fd5c72
+    lastState: {}
+    name: agent
+    ready: true
+    resources: {}
+    restartCount: 0
+    started: true
+    state:
+      running:
+        startedAt: "2026-05-11T05:49:46Z"
+    user:
+      linux:
+        gid: 999
+        supplementalGroups:
+        - 999
+        uid: 999
+    volumeMounts:
+    - mountPath: /etc/mysql/conf.d
+      name: config
+    - mountPath: /etc/pki
+      name: pki
+    - mountPath: /var/lib/mysql
+      name: storage
+    - mountPath: /etc/mysql/mariadb.conf.d
+      name: mariadb-config
+    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      name: serviceaccount
+  - containerID: containerd://8b2957b9b84b2d6f674a746785438442479716ea16bbf298398a305e541a5b99
+    image: docker-registry1.mariadb.com/library/mariadb:11.8.5
+    imageID: docker-registry1.mariadb.com/library/mariadb@sha256:345fa26d595e8c7fe298e0c4098ed400356f502458769c8902229b3437d6da2b
+    lastState: {}
+    name: mariadb
+    ready: true
+    resources: {}
+    restartCount: 0
+    started: true
+    state:
+      running:
+        startedAt: "2026-05-11T05:49:46Z"
+    user:
+      linux:
+        gid: 999
+        supplementalGroups:
+        - 999
+        uid: 999
+    volumeMounts:
+    - mountPath: /etc/mysql/conf.d
+      name: config
+    - mountPath: /etc/pki
+      name: pki
+    - mountPath: /var/lib/mysql
+      name: storage
+    - mountPath: /etc/mysql/mariadb.conf.d
+      name: mariadb-config
+    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      name: serviceaccount
+  hostIP: 172.18.0.2
+  hostIPs:
+  - ip: 172.18.0.2
+  initContainerStatuses:
+  - containerID: containerd://41d8c4439a31b5b518506e5b3cbda464d6054d705bde961263e39dad7530cda6
+    image: docker-registry3.mariadb.com/mariadb-operator/mariadb-operator:26.3.0
+    imageID: docker-registry3.mariadb.com/mariadb-operator/mariadb-operator@sha256:5ef5a5d35173b9be603970e7a1625100a0538004ddca984508df2c08c4fd5c72
+    lastState: {}
+    name: init
+    ready: true
+    resources: {}
+    restartCount: 0
+    started: false
+    state:
+      terminated:
+        containerID: containerd://41d8c4439a31b5b518506e5b3cbda464d6054d705bde961263e39dad7530cda6
+        exitCode: 0
+        finishedAt: "2026-05-11T05:49:45Z"
+        reason: Completed
+        startedAt: "2026-05-11T05:49:45Z"
+    user:
+      linux:
+        gid: 999
+        supplementalGroups:
+        - 999
+        uid: 999
+    volumeMounts:
+    - mountPath: /etc/mysql/conf.d
+      name: config
+    - mountPath: /etc/pki
+      name: pki
+    - mountPath: /var/lib/mysql
+      name: storage
+    - mountPath: /etc/mysql/mariadb.conf.d
+      name: mariadb-config
+    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      name: serviceaccount
+  observedGeneration: 1
+  phase: Running
+  podIP: 10.244.0.36
+  podIPs:
+  - ip: 10.244.0.36
+  qosClass: BestEffort
+  startTime: "2026-05-11T05:49:44Z"

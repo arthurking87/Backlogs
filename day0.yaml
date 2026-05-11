@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: day0-pod
+spec:
+  containers:
+  - name: day0-container
+    image: docker-registry1.mariadb.com/library/mariadb:11.8.5
+    command: ["tail", "-f", "/dev/null"]
+    imagePullPolicy: Never
+    resources:
+      requests:
+        memory: "64Mi"
+        cpu: "250m"
+      limits:
+        memory: "128Mi"
+        cpu: "500m"
+    ports:
+      - containerPort: 3306
+    env:
+      - name: MARIADB_ROOT_PASSWORD
+        value: MariaDB11!

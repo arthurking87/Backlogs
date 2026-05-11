@@ -16,3 +16,10 @@ https://kind.sigs.k8s.io/
 # Build
 docker build -t t-operator:0.24.0 .
 kind load docker-image t-operator:0.24.0
+
+# Mariadb
+mariadb -u root -p${MARIADB_ROOT_PASSWORD}
+
+STOP ALL SLAVES; FLUSH PRIVILEGES; START ALL SLAVES;
+
+show all slaves status\G

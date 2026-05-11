@@ -19,7 +19,7 @@ MARIADB_OPERATOR_OLD_IMAGE_TAG="0.24.12.6.2"
 MARIADB_OPERATOR_NEW_RESOURCES_PATH="./temp/mariadb-operator-resources-new.yaml"
 MARIADB_OPERATOR_OLD_RESOURCES_PATH="./temp/mariadb-operator-resources-old.yaml"
 
-MARIADB_NAMESPACE="db"
+MARIADB_NAMESPACE="test2"
 MARIADB_NAME="mariadb-repl"
 
 PRIMARY_POD_NAME=""
@@ -484,53 +484,53 @@ run_test_0() {
 
     local overall_success=true
 
-    # --- New Version Image Information ---
-    echo "--- New Version Image Information ---"
-    local new_full_image="${MARIADB_OPERATOR_NEW_IMAGE_NAME}:${MARIADB_OPERATOR_NEW_IMAGE_TAG}"
-    echo "Image Name: ${MARIADB_OPERATOR_NEW_IMAGE_NAME}"
-    echo "Image Tag: ${MARIADB_OPERATOR_NEW_IMAGE_TAG}"
-    echo "Full Image Path: ${new_full_image}"
+    # # --- New Version Image Information ---
+    # echo "--- New Version Image Information ---"
+    # local new_full_image="${MARIADB_OPERATOR_NEW_IMAGE_NAME}:${MARIADB_OPERATOR_NEW_IMAGE_TAG}"
+    # echo "Image Name: ${MARIADB_OPERATOR_NEW_IMAGE_NAME}"
+    # echo "Image Tag: ${MARIADB_OPERATOR_NEW_IMAGE_TAG}"
+    # echo "Full Image Path: ${new_full_image}"
 
-    echo "Checking for new image in local Docker cache..."
-    if [ -n "$(docker images -q "${new_full_image}")" ]; then
-		    echo "✅ New version image exists in local Docker cache: ${new_full_image}."
-        echo "Attempting to load new image into Kind cluster..."
-        if kind load docker-image "${new_full_image}" > /dev/null 2>&1; then
-		        echo "✅ New version image successfully loaded into Kind cluster."
-        else
-            echo "❌ Failed to load new version image into Kind cluster. Is a Kind cluster running?"
-            overall_success=false
-        fi
-    else
-        echo "❌ New version image does NOT exist in local Docker cache: ${new_full_image}."
-        echo "Skipping loading new image to Kind cluster as it's not found locally."
-        overall_success=false
-    fi
-    echo ""
+    # echo "Checking for new image in local Docker cache..."
+    # if [ -n "$(docker images -q "${new_full_image}")" ]; then
+	# 	    echo "✅ New version image exists in local Docker cache: ${new_full_image}."
+    #     echo "Attempting to load new image into Kind cluster..."
+    #     if kind load docker-image "${new_full_image}" > /dev/null 2>&1; then
+	# 	        echo "✅ New version image successfully loaded into Kind cluster."
+    #     else
+    #         echo "❌ Failed to load new version image into Kind cluster. Is a Kind cluster running?"
+    #         overall_success=false
+    #     fi
+    # else
+    #     echo "❌ New version image does NOT exist in local Docker cache: ${new_full_image}."
+    #     echo "Skipping loading new image to Kind cluster as it's not found locally."
+    #     overall_success=false
+    # fi
+    # echo ""
     
-    # --- Old Version Image Information ---
-    echo "--- Old Version Image Information ---"
-    local old_full_image="${MARIADB_OPERATOR_OLD_IMAGE_NAME}:${MARIADB_OPERATOR_OLD_IMAGE_TAG}"
-    echo "Image Name: ${MARIADB_OPERATOR_OLD_IMAGE_NAME}"
-    echo "Image Tag: ${MARIADB_OPERATOR_OLD_IMAGE_TAG}"
-    echo "Full Image Path: ${old_full_image}"
+    # # --- Old Version Image Information ---
+    # echo "--- Old Version Image Information ---"
+    # local old_full_image="${MARIADB_OPERATOR_OLD_IMAGE_NAME}:${MARIADB_OPERATOR_OLD_IMAGE_TAG}"
+    # echo "Image Name: ${MARIADB_OPERATOR_OLD_IMAGE_NAME}"
+    # echo "Image Tag: ${MARIADB_OPERATOR_OLD_IMAGE_TAG}"
+    # echo "Full Image Path: ${old_full_image}"
 
-    echo "Checking for old image in local Docker cache..."
-    if [ -n "$(docker images -q "${old_full_image}")" ]; then
-		    echo "✅ Old version image exists in local Docker cache: ${old_full_image}."
-        echo "Attempting to load old image into Kind cluster..."
-        if kind load docker-image "${old_full_image}" > /dev/null 2>&1; then
-		        echo "✅ Old version image successfully loaded into Kind cluster."
-        else
-            echo "❌ Failed to load old version image into Kind cluster. Is a Kind cluster running?"
-            overall_success=false
-        fi
-    else
-		    echo "❌ Old version image does NOT exist in local Docker cache: ${old_full_image}."
-        echo "Skipping loading old image to Kind cluster as it's not found locally."
-        overall_success=false 
-    fi
-    echo ""
+    # echo "Checking for old image in local Docker cache..."
+    # if [ -n "$(docker images -q "${old_full_image}")" ]; then
+	# 	    echo "✅ Old version image exists in local Docker cache: ${old_full_image}."
+    #     echo "Attempting to load old image into Kind cluster..."
+    #     if kind load docker-image "${old_full_image}" > /dev/null 2>&1; then
+	# 	        echo "✅ Old version image successfully loaded into Kind cluster."
+    #     else
+    #         echo "❌ Failed to load old version image into Kind cluster. Is a Kind cluster running?"
+    #         overall_success=false
+    #     fi
+    # else
+	# 	    echo "❌ Old version image does NOT exist in local Docker cache: ${old_full_image}."
+    #     echo "Skipping loading old image to Kind cluster as it's not found locally."
+    #     overall_success=false 
+    # fi
+    # echo ""
 
     pre_check_mariadb
     
@@ -1160,10 +1160,15 @@ run_test_6_2() {
     echo "SLAVES_IO_SQL_READY_NUM: $SLAVES_IO_SQL_READY_NUM."
     if [ $SLAVES_IO_SQL_READY_NUM -eq 2 ]; then
         echo "Two slave ready"
+        # make_error_cmd='"
+        # STOP SLAVE '\''mariadb-operator'\'';
+        # FLUSH PRIVILEGES;
+        # START SLAVE '\''mariadb-operator'\'';
+        # "'
         make_error_cmd='"
-        STOP SLAVE '\''mariadb-operator'\'';
+        STOP ALL SLAVES;
         FLUSH PRIVILEGES;
-        START SLAVE '\''mariadb-operator'\'';
+        START ALL SLAVES;
         "'
         kubectl -n "$MARIADB_NAMESPACE" exec day0-pod -c day0-container -- bash -c 'mariadb -u root -p"${MARIADB_ROOT_PASSWORD}" -h '${MARIADB_NAME}-secondary' -e '"${make_error_cmd}"''
         if [ $? -eq 0 ]; then
